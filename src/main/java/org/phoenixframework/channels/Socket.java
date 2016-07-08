@@ -1,5 +1,21 @@
 package org.phoenixframework.channels;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSocketFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -12,25 +28,20 @@ import com.squareup.okhttp.ResponseBody;
 import com.squareup.okhttp.ws.WebSocket;
 import com.squareup.okhttp.ws.WebSocketCall;
 import com.squareup.okhttp.ws.WebSocketListener;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLSocketFactory;
-import okio.Buffer;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import okio.Buffer;
+import org.msgpack.jackson.dataformat.*;
 
 
 public class Socket {
     private static final Logger LOG = Logger.getLogger(Socket.class.getName());
 
+
     public static final int RECONNECT_INTERVAL_MS = 5000;
 
     private static final int DEFAULT_HEARTBEAT_INTERVAL = 7000;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper(new MessagePackFactory());
 
     private final OkHttpClient httpClient = new OkHttpClient();
     private WebSocket webSocket = null;
@@ -81,7 +92,7 @@ public class Socket {
             LOG.log(Level.FINE, "Envelope received: {0}", payload);
 
             try {
-                if (payload.contentType() == WebSocket.TEXT) {
+                if (payload.contentType() == WebSocket.BINARY) {
                     final Envelope envelope =
                         objectMapper.readValue(payload.byteStream(), Envelope.class);
                     for (final Channel channel : channels) {
@@ -278,6 +289,10 @@ public class Socket {
      */
     public Socket push(final Envelope envelope) throws IOException {
         LOG.log(Level.FINE, "Pushing envelope: {0}", envelope);
+        byte[] bytes = objectMapper.writeValueAsBytes(envelope);
+
+        RequestBody body = RequestBody.create(WebSocket.BINARY, bytes);
+        /*
         final ObjectNode node = objectMapper.createObjectNode();
         node.put("topic", envelope.getTopic());
         node.put("event", envelope.getEvent());
@@ -287,6 +302,7 @@ public class Socket {
         LOG.log(Level.FINE, "Sending JSON: {0}", json);
 
         RequestBody body = RequestBody.create(WebSocket.TEXT, json);
+        */
 
         if (this.isConnected()) {
             try {

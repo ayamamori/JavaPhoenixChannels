@@ -11,13 +11,14 @@ if(project.hasProperty('signing.keyId'))
 
 group = 'org.phoenixframework.channels'
 version = '0.1.0'
-sourceCompatibility = '1.7'
-targetCompatibility = '1.6'
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
 dependencies {
   compile fileTree(dir: 'libs', include: ['*.jar'])
   compile 'com.fasterxml.jackson.core:jackson-databind:2.5.3'
   compile 'com.squareup.okhttp:okhttp-ws:2.7.2'
+  compile group: 'org.msgpack', name: 'jackson-dataformat-msgpack', version: '0.8.7'
   testCompile 'org.codehaus.groovy:groovy-all:2.3.10'
   testCompile "org.spockframework:spock-core:1.0-groovy-2.3"
 

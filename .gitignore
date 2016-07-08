@@ -5,3 +5,7 @@
 /.idea/encodings.xml
 .DS_Store
 /build
+/bin/
+.classpath
+.settings
+.project
