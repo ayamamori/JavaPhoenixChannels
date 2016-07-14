@@ -90,7 +90,6 @@ public class Push {
         this.startTimeout();
         this.sent = true;
         final Envelope envelope = new Envelope(this.channel.getTopic(), this.event, this.payload, ref);
-        System.out.println(envelope);
         this.channel.getSocket().push(envelope);
     }
 
