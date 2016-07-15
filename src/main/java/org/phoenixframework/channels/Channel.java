@@ -33,7 +33,7 @@ public class Channel {
         this.payload = payload;
         this.socket = socket;
         this.joinPush = new Push(this, ChannelEvent.JOIN.getPhxEvent(), payload, DEFAULT_TIMEOUT);
-        this.channelTimer = new Timer("Phx Rejoin timer for " + topic);
+        //this.channelTimer = new Timer("Phx Rejoin timer for " + topic);
 
         this.joinPush.receive("ok", new IMessageCallback() {
             @Override
@@ -232,11 +232,11 @@ public class Channel {
     }
 
     public void scheduleRepeatingTask(TimerTask timerTask, long ms) {
-        this.channelTimer.schedule(timerTask, ms, ms);
+        //this.channelTimer.schedule(timerTask, ms, ms);
     }
 
     public void scheduleTask(TimerTask timerTask, long ms) {
-        this.channelTimer.schedule(timerTask, ms);
+        //this.channelTimer.schedule(timerTask, ms);
     }
 
 
