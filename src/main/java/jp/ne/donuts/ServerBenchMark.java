@@ -28,7 +28,7 @@ public class ServerBenchMark {
             Thread.sleep(1000L);
         }
         System.out.println("Average time for execute a task: "
-            +execTimes.stream().collect(Collectors.averagingDouble(i -> i))
+            +execTimes.stream().collect(Collectors.summarizingDouble(i -> i))
             +"[ms]");
         /*
         sockets.map(socket -> connect(socket))
