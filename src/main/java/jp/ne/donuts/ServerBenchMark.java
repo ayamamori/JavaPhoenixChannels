@@ -1,9 +1,8 @@
 package jp.ne.donuts;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -13,8 +12,11 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 public class ServerBenchMark {
 
-    public static void main(String[] args) throws IllegalStateException, IOException {
-        List<Socket> sockets = IntStream.range(0,2000)
+
+    static int numTasks = 2000;
+    static ArrayBlockingQueue<Long> execTimes = new ArrayBlockingQueue<>(numTasks);
+    public static void main(String[] args) throws IllegalStateException, IOException, InterruptedException {
+        List<Socket> sockets = IntStream.range(0,numTasks)
             .mapToObj(String::valueOf)
             .map(str -> createSocket(str)).collect(Collectors.toList());
         for(Socket s: sockets){
@@ -22,6 +24,12 @@ public class ServerBenchMark {
             connect(s).chan("rooms:lobby", JsonNodeFactory.instance.nullNode()).join()
                             .receive("ok", (msg) -> disconnect(s,startTime));
         }
+        while(execTimes.size()<numTasks){
+            Thread.sleep(1000L);
+        }
+        System.out.println("Average time for execute a task: "
+            +execTimes.stream().collect(Collectors.averagingDouble(i -> i))
+            +"[ms]");
         /*
         sockets.map(socket -> connect(socket))
             .map(socket -> {
@@ -55,9 +63,10 @@ public class ServerBenchMark {
     
     private static Socket disconnect(Socket socket, long startTime){
         try {
-            System.out.println(System.currentTimeMillis()-startTime+"[ms]");
+            //System.out.println(System.currentTimeMillis()-startTime+"[ms]");
             socket.disconnect();
-        } catch (IOException e) {
+            execTimes.put(System.currentTimeMillis()-startTime);
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         return socket;
