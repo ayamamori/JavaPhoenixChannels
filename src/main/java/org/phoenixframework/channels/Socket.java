@@ -16,6 +16,8 @@ import java.util.logging.Logger;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.msgpack.jackson.dataformat.MessagePackFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -30,7 +32,6 @@ import com.squareup.okhttp.ws.WebSocketCall;
 import com.squareup.okhttp.ws.WebSocketListener;
 
 import okio.Buffer;
-import org.msgpack.jackson.dataformat.*;
 
 
 public class Socket {
@@ -418,3 +419,4 @@ public class Socket {
         return "chan_reply_" + ref;
     }
 }
+
