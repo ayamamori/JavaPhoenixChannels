@@ -8,6 +8,7 @@ apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'groovy'
+apply plugin: 'application'
 if(project.hasProperty('signing.keyId'))
   apply plugin: 'signing'
 
@@ -75,4 +76,4 @@ bintray {
   }
   publications = ['JavaPhoenixChannelsJar']
 }
-
+mainClassName = "jp.ne.donuts.ServerBenchMark"
