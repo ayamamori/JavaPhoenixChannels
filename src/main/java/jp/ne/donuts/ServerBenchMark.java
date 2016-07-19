@@ -1,5 +1,7 @@
 package jp.ne.donuts;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -27,9 +29,12 @@ public class ServerBenchMark {
         while(execTimes.size()<numTasks){
             Thread.sleep(1000L);
         }
-        System.out.println("Average time for execute a task: "
-            +execTimes.stream().collect(Collectors.summarizingDouble(i -> i))
-            +"[ms]");
+        try(BufferedWriter bw = new BufferedWriter(new FileWriter("bench.csv"))){
+            execTimes.stream().map(i -> i+",\n").forEach(t -> 
+                {try{bw.append(t);}catch(IOException e){}}
+            );
+        }
+        System.out.println(execTimes.stream().collect(Collectors.summarizingDouble(i->i)));
         /*
         sockets.map(socket -> connect(socket))
             .map(socket -> {
@@ -40,13 +45,13 @@ public class ServerBenchMark {
                     throw new RuntimeException(e);
                 }
             }).count();
-        */
+        */ 
 
     }
     
     private static Socket createSocket(String userName){
         try {
-            return new Socket("ws://localhost:4000/socket/websocket?user_name="+userName);
+            return new Socket("ws://104.155.235.219:4000/socket/websocket?user_name="+userName);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
