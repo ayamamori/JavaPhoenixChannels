@@ -8,6 +8,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.javatuples.Pair;
 import org.phoenixframework.channels.Socket;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -16,24 +17,26 @@ public class ServerBenchMark {
 
 
     static final int numTasks = 1000;
-    static final String host = "104.155.235.219";
+    static final String host = "";
     //static final String host = "localhost";
     static final String port = "4000";
 
-    static ArrayBlockingQueue<Long> execTimes = new ArrayBlockingQueue<>(numTasks);
+    static ArrayBlockingQueue<Pair<String,Long>> execTimes = new ArrayBlockingQueue<>(numTasks);
     public static void main(String[] args) throws IllegalStateException, IOException, InterruptedException {
-        List<Socket> sockets = IntStream.range(0,numTasks)
+        List<Pair<String,Socket>> sockets = IntStream.range(0,numTasks)
             .mapToObj(String::valueOf)
-            .map(str -> createSocket(str)).collect(Collectors.toList());
+            .map(str -> Pair.with(str,createSocket(str))).collect(Collectors.toList());
 
         sockets.parallelStream()
-            .map(socket -> {
+            .map(pair -> {
                 try {
+                    String port = pair.getValue0();
+                    Socket socket = pair.getValue1();
                     long startTime = System.nanoTime();
                     return connect(socket)
                             .chan("rooms:lobby", JsonNodeFactory.instance.nullNode())
                             .join()
-                            .receive("ok", (msg) -> disconnect(socket,startTime));
+                            .receive("ok", (msg) -> disconnect(socket,startTime,port));
                 } catch (IllegalStateException | IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -44,11 +47,11 @@ public class ServerBenchMark {
         }
 
         try(BufferedWriter bw = new BufferedWriter(new FileWriter("bench.csv"))){
-            execTimes.stream().map(i -> i+",\n").forEach(t -> 
+            execTimes.stream().map(i -> i.getValue0()+","+i.getValue1()+",\n").forEach(t -> 
                 {try{bw.append(t);}catch(IOException e){}}
             );
         }
-        System.out.println(execTimes.stream().collect(Collectors.summarizingDouble(i->i)));
+        System.out.println(execTimes.stream().map(p -> p.getValue1()).collect(Collectors.summarizingDouble(i->i)));
         System.exit(0);
 
     }
@@ -70,9 +73,9 @@ public class ServerBenchMark {
         return socket;
     }
     
-    private static Socket disconnect(Socket socket, long startTime){
+    private static Socket disconnect(Socket socket, long startTime, String port){
         try {
-            execTimes.put((System.nanoTime()-startTime)/1_000_000);
+            execTimes.put(Pair.with(port,(System.nanoTime()-startTime)/1_000_000));
             socket.disconnect();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
