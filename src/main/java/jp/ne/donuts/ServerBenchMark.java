@@ -25,13 +25,7 @@ public class ServerBenchMark {
         List<Socket> sockets = IntStream.range(0,numTasks)
             .mapToObj(String::valueOf)
             .map(str -> createSocket(str)).collect(Collectors.toList());
-        /*
-        for(Socket s: sockets){
-            long startTime = System.nanoTime();
-            connect(s).chan("rooms:lobby", JsonNodeFactory.instance.nullNode()).join()
-                            .receive("ok", (msg) -> disconnect(s,startTime));
-        }
-        */
+
         sockets.parallelStream()
             .map(socket -> {
                 try {
@@ -44,9 +38,11 @@ public class ServerBenchMark {
                     throw new RuntimeException(e);
                 }
             }).count();
+
         while(execTimes.size()<numTasks){
             Thread.sleep(1000L);
         }
+
         try(BufferedWriter bw = new BufferedWriter(new FileWriter("bench.csv"))){
             execTimes.stream().map(i -> i+",\n").forEach(t -> 
                 {try{bw.append(t);}catch(IOException e){}}
@@ -76,7 +72,6 @@ public class ServerBenchMark {
     
     private static Socket disconnect(Socket socket, long startTime){
         try {
-            //System.out.println(System.currentTimeMillis()-startTime+"[ms]");
             execTimes.put((System.nanoTime()-startTime)/1_000_000);
             socket.disconnect();
         } catch (IOException | InterruptedException e) {
