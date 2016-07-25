@@ -79,7 +79,7 @@ public class Socket {
             Socket.this.webSocket = webSocket;
             cancelReconnectTimer();
 
-            //startHeartbeatTimer();
+            startHeartbeatTimer();
 
             for (final ISocketOpenCallback callback : socketOpenCallbacks) {
                 callback.onOpen();
@@ -219,7 +219,7 @@ public class Socket {
         LOG.log(Level.FINE, "PhoenixSocket({0})", endpointUri);
         this.endpointUri = endpointUri;
         this.heartbeatInterval = heartbeatIntervalInMs;
-        //this.timer = new Timer("Reconnect Timer for " + endpointUri);
+        this.timer = new Timer("Reconnect Timer for " + endpointUri);
     }
 
     public void disconnect() throws IOException {
